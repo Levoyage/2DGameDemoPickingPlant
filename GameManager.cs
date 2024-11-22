@@ -2,7 +2,6 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
-using UnityEngine.SceneManagement;
 
 public class GameManager : MonoBehaviour
 {
@@ -59,7 +58,7 @@ public class GameManager : MonoBehaviour
     {
         if (Instance != null && Instance != this)
         {
-            Destroy(gameObject); 
+            Destroy(gameObject);
             return;
         }
         Instance = this;
@@ -80,6 +79,11 @@ public class GameManager : MonoBehaviour
             snake.SaveInitialPosition();
         }
 
+        InitializeGameState();
+    }
+
+    void InitializeGameState()
+    {
         if (playerController != null)
             playerController.canMove = false;
 
@@ -87,19 +91,44 @@ public class GameManager : MonoBehaviour
         UpdateHeartsUI();
 
         SelectRandomPlants();
-        InitializeUI();
+        ResetUIElements();
+
+        // Reset timer and state
+        timeLimit = 120f;
+        gameStarted = false;
+        gameEnded = false;
+
+        // Reset player and snakes
+        player.transform.position = playerInitialPosition;
+        playerInventory.ClearInventory();
+
+        foreach (var snake in snakes)
+        {
+            snake.ResetToInitialPosition();
+        }
     }
 
-    void InitializeUI()
+    void ResetUIElements()
     {
+        // Reset Task Text and Background
         taskText.text = $"Find the {plantNames[requiredPlant1ID]} and {plantNames[requiredPlant2ID]} in 2 minutes to finish the potion!";
+        taskText.gameObject.SetActive(true);
+        taskTextBackground.gameObject.SetActive(true);
+
+        // Hide other elements
         timerText.gameObject.SetActive(false);
         resultText.gameObject.SetActive(false);
         taskDisplay.gameObject.SetActive(false);
         restartButton.gameObject.SetActive(false);
-        taskTextBackground.gameObject.SetActive(true); // Ensure the background is initially visible
 
+        // Show Start Button
+        startButton.gameObject.SetActive(true);
+
+        // Reattach listeners to buttons
+        startButton.onClick.RemoveAllListeners();
         startButton.onClick.AddListener(StartGame);
+
+        restartButton.onClick.RemoveAllListeners();
         restartButton.onClick.AddListener(RestartGame);
     }
 
@@ -235,32 +264,7 @@ public class GameManager : MonoBehaviour
 
     void RestartGame()
     {
-        timeLimit = 120f;
-        gameStarted = false;
-        gameEnded = false;
-
-        resultText.gameObject.SetActive(false);
-        restartButton.gameObject.SetActive(false);
-        taskText.gameObject.SetActive(true);
-        taskTextBackground.gameObject.SetActive(true); // Show the background image again
-        startButton.gameObject.SetActive(true);
-        timerText.gameObject.SetActive(false);
-        taskDisplay.gameObject.SetActive(false);
-
-        player.transform.position = playerInitialPosition;
-
-        playerInventory.ClearInventory();
-
-        currentLives = maxLives;
-        UpdateHeartsUI();
-
-        foreach (var snake in snakes)
-        {
-            snake.ResetToInitialPosition();
-        }
-
-        SelectRandomPlants();
-        InitializeUI();
+        InitializeGameState();
     }
 
     void PlaySound(AudioClip clip)
