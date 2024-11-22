@@ -27,14 +27,10 @@ public class SnakeController : MonoBehaviour
         idleTimer = Random.Range(idleDurationMin, idleDurationMax);
 
         // Automatically find the player in the scene
-        GameObject playerObject = GameObject.FindWithTag("Player"); // Ensure your player has a "Player" tag
+        GameObject playerObject = GameObject.FindWithTag("Player");
         if (playerObject != null)
         {
             player = playerObject.transform;
-        }
-        else
-        {
-            Debug.LogError("Player not found! Ensure the Player GameObject has the tag 'Player'.");
         }
     }
 
@@ -54,6 +50,7 @@ public class SnakeController : MonoBehaviour
     {
         moveTimer -= Time.deltaTime;
 
+        // Apply velocity
         rb.velocity = moveDirection * moveSpeed;
 
         // Update Animator parameters for movement direction
@@ -124,6 +121,10 @@ public class SnakeController : MonoBehaviour
 
     void OnCollisionEnter2D(Collision2D collision)
     {
-        ChooseRandomDirection(); // Change direction when colliding with something
+        // Change direction when colliding with solid tiles or objects
+        if (collision.collider != null)
+        {
+            ChooseRandomDirection();
+        }
     }
 }

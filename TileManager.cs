@@ -18,13 +18,20 @@ public class TileManager : MonoBehaviour
     public string[][] mapData; // 2D array to store the map data
     private GameObject[,] tileInstances; // Stores the instantiated tiles
 
+    void Awake()
+    {
+        // Initialize solidTiles array based on the number of tile prefabs
+        solidTiles = new bool[tilePrefabs.Length];
+        solidTiles[2] = true; // Tile ID 2 is solid
+        solidTiles[4] = true; // Tile ID 4 is solid
+        // All other tiles will default to false
+    }
+
     void Start()
     {
         LoadMapData();
         InitializeTileInstances();
         UpdateVisibleTiles();
-
-        
     }
 
     void Update()
@@ -95,5 +102,4 @@ public class TileManager : MonoBehaviour
             }
         }
     }
-    
 }
