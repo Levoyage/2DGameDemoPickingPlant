@@ -3,7 +3,7 @@ using UnityEngine;
 public class SnakeController : MonoBehaviour
 {
     public float moveSpeed = 1f; // Snake's movement speed
-    public float detectionRange = 5f; // Range to detect the player
+    public float detectionRange = 50f; // Range to detect the player
     public float idleDurationMin = 1f; // Minimum idle duration
     public float idleDurationMax = 2f; // Maximum idle duration
     public float moveDurationMin = 2f; // Minimum move duration
@@ -19,6 +19,7 @@ public class SnakeController : MonoBehaviour
 
     private Vector2 lastPosition; // To detect if stuck
     private float stuckTimer; // Timer for stuck state
+    private Vector2[] possibleDirections = { Vector2.up, Vector2.down, Vector2.left, Vector2.right };
 
     void Start()
     {
@@ -63,7 +64,7 @@ public class SnakeController : MonoBehaviour
             stuckTimer += Time.deltaTime;
             if (stuckTimer >= 0.5f) // If stuck for more than 0.5 seconds
             {
-                ChooseRandomDirection(); // Change direction
+                ChooseAlternativeDirection(); // Change direction
                 stuckTimer = 0; // Reset stuck timer
             }
         }
@@ -89,10 +90,19 @@ public class SnakeController : MonoBehaviour
 
         if (idleTimer <= 0)
         {
-            // If player is within detection range, move towards player
-            if (player != null && Vector2.Distance(transform.position, player.position) <= detectionRange)
+            if (player != null)
             {
-                moveDirection = (player.position - transform.position).normalized; // Move towards player
+                float distanceToPlayer = Vector2.Distance(transform.position, player.position);
+
+                // If player is within detection range, move towards player
+                if (distanceToPlayer <= detectionRange)
+                {
+                    moveDirection = (player.position - transform.position).normalized;
+                }
+                else
+                {
+                    ChooseRandomDirection(); // Move randomly
+                }
             }
             else
             {
@@ -107,24 +117,23 @@ public class SnakeController : MonoBehaviour
     void ChooseRandomDirection()
     {
         int direction = Random.Range(0, 4);
+        moveDirection = possibleDirections[direction];
+    }
 
-        switch (direction)
-        {
-            case 0: moveDirection = Vector2.up; break;
-            case 1: moveDirection = Vector2.down; break;
-            case 2: moveDirection = Vector2.left; break;
-            case 3: moveDirection = Vector2.right; break;
-        }
+    void ChooseAlternativeDirection()
+    {
+        // Filter out the current direction
+        Vector2 previousDirection = moveDirection;
+        Vector2[] alternativeDirections = System.Array.FindAll(possibleDirections, dir => dir != previousDirection);
 
-        moveDirection = moveDirection.normalized;
+        // Randomly pick a new direction from the alternatives
+        int index = Random.Range(0, alternativeDirections.Length);
+        moveDirection = alternativeDirections[index];
     }
 
     void OnCollisionEnter2D(Collision2D collision)
     {
         // Change direction when colliding with solid tiles or objects
-        if (collision.collider != null)
-        {
-            ChooseRandomDirection();
-        }
+        ChooseAlternativeDirection();
     }
 }
