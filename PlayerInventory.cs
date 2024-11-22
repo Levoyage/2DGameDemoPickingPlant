@@ -17,12 +17,17 @@ public class PlayerInventory : MonoBehaviour
         }
 
         Debug.Log("Added " + plantName + " (ID: " + plantID + ") to the bag. Total: " + plantCollection[plantID]);
-
-        
     }
 
     public int GetPlantCount(int plantID)
     {
         return plantCollection.ContainsKey(plantID) ? plantCollection[plantID] : 0;
+    }
+
+    // New Method: Clear the inventory
+    public void ClearInventory()
+    {
+        plantCollection.Clear();
+        Debug.Log("Inventory cleared.");
     }
 }

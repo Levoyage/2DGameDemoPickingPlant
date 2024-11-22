@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
@@ -9,6 +10,7 @@ public class GameManager : MonoBehaviour
 
     // UI Elements
     public TextMeshProUGUI taskText;
+    public Image taskTextBackground; // Reference to the background image
     public TextMeshProUGUI timerText;
     public TextMeshProUGUI resultText;
     public TextMeshProUGUI taskDisplay;
@@ -19,6 +21,12 @@ public class GameManager : MonoBehaviour
     public GameObject player;
     private PlayerInventory playerInventory;
     private PlayerController playerController;
+
+    // Snake(s) in the scene
+    public List<SnakeController> snakes;
+
+    // Player's initial position
+    private Vector3 playerInitialPosition;
 
     // Music and sound effects
     public AudioClip backgroundMusic;
@@ -35,7 +43,7 @@ public class GameManager : MonoBehaviour
     private int requiredPlant1ID;
     private int requiredPlant2ID;
     private string[] plantNames = {
-        "Rafflesia Arnoldii", "Ginger", "Orchid", "Protea", 
+        "Rafflesia Arnoldii", "Ginger", "Orchid", "Protea",
         "Agapanthus", "Mustard", "Nightshade", "Pimpernel"
     };
 
@@ -49,33 +57,35 @@ public class GameManager : MonoBehaviour
 
     void Awake()
     {
-        // Ensure there's only one instance of GameManager
         if (Instance != null && Instance != this)
         {
-            Destroy(gameObject); // Avoid duplicate instances
+            Destroy(gameObject); 
             return;
         }
         Instance = this;
-        DontDestroyOnLoad(gameObject); // Keep this instance between scenes
+        DontDestroyOnLoad(gameObject);
     }
 
     void Start()
     {
-        // Initialize references
         playerInventory = player.GetComponent<PlayerInventory>();
         playerController = player.GetComponent<PlayerController>();
         audioSource = gameObject.AddComponent<AudioSource>();
         audioSource.loop = true;
 
-        // Disable player movement initially
+        playerInitialPosition = player.transform.position;
+
+        foreach (var snake in snakes)
+        {
+            snake.SaveInitialPosition();
+        }
+
         if (playerController != null)
             playerController.canMove = false;
 
-        // Initialize lives
         currentLives = maxLives;
         UpdateHeartsUI();
 
-        // Randomly select required plants
         SelectRandomPlants();
         InitializeUI();
     }
@@ -87,6 +97,7 @@ public class GameManager : MonoBehaviour
         resultText.gameObject.SetActive(false);
         taskDisplay.gameObject.SetActive(false);
         restartButton.gameObject.SetActive(false);
+        taskTextBackground.gameObject.SetActive(true); // Ensure the background is initially visible
 
         startButton.onClick.AddListener(StartGame);
         restartButton.onClick.AddListener(RestartGame);
@@ -96,6 +107,7 @@ public class GameManager : MonoBehaviour
     {
         startButton.gameObject.SetActive(false);
         taskText.gameObject.SetActive(false);
+        taskTextBackground.gameObject.SetActive(false); // Hide the background image
         timerText.gameObject.SetActive(true);
         taskDisplay.gameObject.SetActive(true);
         gameStarted = true;
@@ -223,7 +235,32 @@ public class GameManager : MonoBehaviour
 
     void RestartGame()
     {
-        SceneManager.LoadScene(SceneManager.GetActiveScene().name);
+        timeLimit = 120f;
+        gameStarted = false;
+        gameEnded = false;
+
+        resultText.gameObject.SetActive(false);
+        restartButton.gameObject.SetActive(false);
+        taskText.gameObject.SetActive(true);
+        taskTextBackground.gameObject.SetActive(true); // Show the background image again
+        startButton.gameObject.SetActive(true);
+        timerText.gameObject.SetActive(false);
+        taskDisplay.gameObject.SetActive(false);
+
+        player.transform.position = playerInitialPosition;
+
+        playerInventory.ClearInventory();
+
+        currentLives = maxLives;
+        UpdateHeartsUI();
+
+        foreach (var snake in snakes)
+        {
+            snake.ResetToInitialPosition();
+        }
+
+        SelectRandomPlants();
+        InitializeUI();
     }
 
     void PlaySound(AudioClip clip)

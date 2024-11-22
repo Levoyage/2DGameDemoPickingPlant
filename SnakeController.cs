@@ -21,6 +21,20 @@ public class SnakeController : MonoBehaviour
     private float stuckTimer; // Timer for stuck state
     private Vector2[] possibleDirections = { Vector2.up, Vector2.down, Vector2.left, Vector2.right };
 
+    private Vector3 initialPosition;
+
+public void SaveInitialPosition()
+{
+    initialPosition = transform.position;
+}
+
+public void ResetToInitialPosition()
+{
+    transform.position = initialPosition;
+    // Optionally reset other snake variables if needed
+}
+
+
     void Start()
     {
         rb = GetComponent<Rigidbody2D>();
