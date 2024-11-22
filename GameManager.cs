@@ -5,6 +5,8 @@ using UnityEngine.SceneManagement;
 
 public class GameManager : MonoBehaviour
 {
+    public static GameManager Instance { get; private set; } // Singleton instance
+
     // UI Elements
     public TextMeshProUGUI taskText;
     public TextMeshProUGUI timerText;
@@ -44,6 +46,18 @@ public class GameManager : MonoBehaviour
 
     // Audio source
     private AudioSource audioSource;
+
+    void Awake()
+    {
+        // Ensure there's only one instance of GameManager
+        if (Instance != null && Instance != this)
+        {
+            Destroy(gameObject); // Avoid duplicate instances
+            return;
+        }
+        Instance = this;
+        DontDestroyOnLoad(gameObject); // Keep this instance between scenes
+    }
 
     void Start()
     {

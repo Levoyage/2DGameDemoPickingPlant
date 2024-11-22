@@ -1,4 +1,5 @@
 using UnityEngine;
+using System.Collections;
 
 public class PlayerController : MonoBehaviour
 {
@@ -13,12 +14,20 @@ public class PlayerController : MonoBehaviour
     private float originalMoveSpeed; // Store the original speed for resetting
     private bool isSpeedBoosted = false;
 
+    // Invincibility state and duration
+    private bool isInvincible = false;
+    public float invincibilityDuration = 2f;
+
+    // Sprite renderer for flashing effect
+    private SpriteRenderer spriteRenderer;
+
     void Start()
     {
         rb = GetComponent<Rigidbody2D>();
         animator = GetComponent<Animator>();
-        lastMoveDirection = Vector2.down; // Default direction is down
+        spriteRenderer = GetComponent<SpriteRenderer>();
 
+        lastMoveDirection = Vector2.down; // Default direction is down
         originalMoveSpeed = moveSpeed; // Store the original speed
     }
 
@@ -80,5 +89,35 @@ public class PlayerController : MonoBehaviour
     {
         moveSpeed = originalMoveSpeed; // Reset to original speed
         isSpeedBoosted = false;
+    }
+
+    private void OnCollisionEnter2D(Collision2D collision)
+    {
+        if (collision.gameObject.CompareTag("Snake") && !isInvincible)
+        {
+            LoseLifeAndTriggerInvincibility();
+        }
+    }
+
+    private void LoseLifeAndTriggerInvincibility()
+    {
+        isInvincible = true;
+        GameManager.Instance.LoseLife(); // Call the GameManager's LoseLife function
+        StartCoroutine(FlashSprite());
+    }
+
+    private IEnumerator FlashSprite()
+    {
+        float elapsed = 0f;
+
+        while (elapsed < invincibilityDuration)
+        {
+            spriteRenderer.enabled = !spriteRenderer.enabled; // Toggle sprite visibility
+            yield return new WaitForSeconds(0.1f);
+            elapsed += 0.1f;
+        }
+
+        spriteRenderer.enabled = true; // Ensure sprite is visible
+        isInvincible = false;
     }
 }
